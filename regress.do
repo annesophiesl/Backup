@@ -64,10 +64,10 @@ merge 1:1 country year using "C:\Users\AnneSophie\Documents\Polit\BA\data\expend
 
 
 *generate dependent variables
-gen health_exp = health/gdp_current*100
-gen pen_exp = (oldage_ben + survivors + incapacity)/gdp_current*100
-gen welf_exp = (family + active_labour  + other_social)/gdp_current*100
-gen unemp_exp = unemp/gdp_current*100
+gen health_exp = health/gdp_current
+gen pen_exp = (oldage_ben + survivors + incapacity)/gdp_current
+gen welf_exp = (family + active_labour  + other_social)/gdp_current
+gen unemp_exp = unemp/gdp_current
 gen social_exp = health_exp + pen_exp + welf_exp + unemp_exp
 gen transfer = unemp_exp + pen_exp + health_exp + welf_exp
 gen nonsoc_exp = all_exp - social_exp
@@ -126,7 +126,7 @@ merge 1:1 countrycode year using "C:\Users\AnneSophie\Documents\Polit\BA\data\pe
 drop if _merge==2
 drop _merge
 
-merge 1:1 country year using "C:\Users\AnneSophie\Documents\Polit\BA\data\income.dta"
+merge 1:1 country year using "C:\Users\AnneSophie\Documents\Polit\BA\data\income_udv.dta"
 drop _merge
 
 gen pri_sec_share= secondary_share + elementary_share
@@ -136,38 +136,156 @@ gen open = q_x + q_m
 gen lap_cap = q_gfcf[n-10]
 
 
+gen iso="empty"
+replace iso="USA" if country=="United States"
+replace iso="CAN" if country=="Canada"
+replace iso="GBR" if country=="United Kingdom"
+replace iso="BEL" if country=="Belgium"
+replace iso="IRL" if country=="Ireland"
+replace iso="NLD" if country=="Netherlands"
+replace iso="LUX" if country=="Luxembourg"
+replace iso="FRA" if country=="France"
+replace iso="CHE" if country=="Switzerland"
+replace iso="ESP" if country=="Spain"
+replace iso="PRT" if country=="Portugal"
+replace iso="DEU" if country=="Germany"
+replace iso="POL" if country=="Poland"
+replace iso="AUT" if country=="Austria"
+replace iso="HUN" if country=="Hungary"
+*replace iso="CZE" if country=="Czechoslovakia" 
+replace iso="CZE" if country=="Czech Republic"
+replace iso="SVK" if country=="Slovak Republic"
+replace iso="ITA" if country=="Italy"
+replace iso="SVN" if country=="Slovenia"
+replace iso="GRC" if country=="Greece"
+replace iso="BGR" if country=="Bulgaria"
+replace iso="EST" if country=="Estonia"
+replace iso="LVA" if country=="Latvia"
+replace iso="LTU" if country=="Lithuania"
+replace iso="FIN" if country=="Finland"
+replace iso="SWE" if country=="Sweden"
+replace iso="NOR" if country=="Norway"
+replace iso="DNK" if country=="Denmark"
+replace iso="ISL" if country=="Iceland"
+replace iso="ISR" if country=="Israel"
+replace iso="JPN" if country=="Japan"
+replace iso="KOR" if country=="Korea"
+replace iso="AUS" if country=="Australia"
+replace iso="NZL" if country=="New Zealand"
+replace iso="CHL" if country=="Chile"
+replace iso="MEX" if country=="Mexico"
+replace iso="TUR" if country=="Turkey"
+
+*gen lag_pri = primary_wb[n-10]
+*gen lag_sec = secondary_wb[n-10]
+*gen lag_teri = teritary_wb[n-10]
+
 *DATASÆT DONE!!!
 
 save "C:\Users\AnneSophie\Documents\Polit\BA\data\data_done.dta"*/
 
 
-use "C:\Users\AnneSophie\Documents\Polit\BA\data\data_done.dta"
+use "C:\Users\AnneSophie\Documents\Polit\BA\data\leader_done.dta"
+
+forvalues y = 3/10{
+gen interval`y'=0
+replace interval`y' = 1 if year>1980+`y'
+replace interval`y' = 2 if year>1980+`y'+`y'
+replace interval`y' = 3 if year>1980+`y'+`y'+`y'
+replace interval`y' = 4 if year>1980+`y'+`y'+`y'+`y'
+replace interval`y' = 5 if year>1980+`y'+`y'+`y'+`y'+`y'
+replace interval`y' = 6 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'
+replace interval`y' = 7 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'
+replace interval`y' = 8 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'
+replace interval`y' = 9 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'
+replace interval`y' = 10 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'
+replace interval`y' = 11 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'
+}
+drop interval4
+drop interval6
+drop interval7
+drop interval8
+drop interval9
+
+foreach x in linc gdp_capita_lag open lap_cap lag_pri lag_sec lag_teri young young_adult school_age old corp welf_exp health_exp pen_exp unemp_exp edu_exp all_exp_pct turn_over voter income_p90_p50 labour_force_m_work labour_force_f_work{
+bysort interval3 country: egen av3_`x'=mean(`x')
+}
+bysort interval3 country: gen behold3=1 if _n==1
+
+foreach x in linc gdp_capita_lag open lap_cap lag_pri lag_sec lag_teri young young_adult school_age old corp welf_exp health_exp pen_exp unemp_exp edu_exp all_exp_pct turn_over voter income_p90_p50 labour_force_m_work labour_force_f_work{
+bysort interval5 country: egen av5_`x'=mean(`x')
+}
+bysort interval5 country: gen behold5=1 if _n==1
+
+foreach x in linc gdp_capita_lag open lap_cap lag_pri lag_sec lag_teri young young_adult school_age old corp welf_exp health_exp pen_exp unemp_exp edu_exp all_exp_pct turn_over voter income_p90_p50 labour_force_m_work labour_force_f_work{
+bysort interval10 country: egen av10_`x'=mean(`x')
+}
+bysort interval10 country: gen behold10=1 if _n==1
+
+gen av3_soc_exp = av3_health + av3_edu + av3_welf + av3_pen + av3_unemp
+gen av3_nonsoc_exp = av3_all_exp - av3_soc_exp
+
+gen av5_soc_exp = av5_health + av5_edu + av5_welf + av5_pen + av5_unemp
+gen av5_nonsoc_exp = av5_all_exp - av5_soc_exp
+
+gen av10_soc_exp = av10_health + av10_edu + av10_welf + av10_pen + av10_unemp
+gen av10_nonsoc_exp = av10_all_exp - av10_soc_exp
+
+gen av3_linc2=av3_linc*av3_linc
+gen av5_linc2=av5_linc*av5_linc
+gen av10_linc2=av10_linc*av10_linc
+
+gen av3_old2=av3_old*av3_old
+gen av5_old2=av5_old*av5_old
+gen av10_old2=av10_old*av10_old
+
+gen av3_school_age2=av3_school_age*av3_school_age
+gen av5_school_age2=av5_school_age*av5_school_age
+gen av10_school_age2=av10_school_age*av10_school_age
+
+gen av3_young_adult2=av3_young_adult*av3_young_adult
+gen av5_young_adult2=av5_young_adult*av5_young_adult
+gen av10_young_adult2=av10_young_adult*av10_young_adult
+
+gen av3_young2=av3_young*av3_young
+gen av5_young2=av5_young*av5_young
+gen av10_young2=av10_young*av10_young
+
+gen av3_labour_force_m_work2=av3_labour_force_m_work*av3_labour_force_m_work
+gen av5_labour_force_m_work2=av5_labour_force_m_work*av5_labour_force_m_work
+gen av10_labour_force_m_work2=av10_labour_force_m_work*av10_labour_force_m_work
+
+tabulate country, generate (countryd)
+encode country, generate(country_num)
+
+*panel data
+xtset country_num
+xtreg av3_soc_exp av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work av3_labour_force_m_work2 if behold3==1
+xtreg av5_soc_exp av5_linc av5_linc2 av5_young_adult av5_young_adult2 av5_school_age av5_school_age2 av5_old av5_old2 av5_turn_over av5_voter av5_income_p90_p50 av5_labour_force_m_work av5_labour_force_m_work2 if behold5==1
+xtreg av10_soc_exp av10_linc av10_linc2 av10_young_adult av10_young_adult2 av10_school_age av10_school_age2 av10_old av10_old2 av10_turn_over av10_voter av10_income_p90_p50 av10_labour_force_m_work av10_labour_force_m_work2 if behold10==1
+
+
+
+regress av3_soc_exp av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work av3_labour_force_m_work2 countryd* if behold3==1
+regress av5_soc_exp av5_linc av5_linc2 av5_young_adult av5_young_adult2 av5_school_age av5_school_age2 av5_old av5_old2 av5_turn_over av5_voter av5_income_p90_p50 av5_labour_force_m_work av5_labour_force_m_work2 countryd* if behold5==1
+regress av10_soc_exp av10_linc av10_linc2 av10_young_adult av10_young_adult2 av10_school_age av10_school_age2 av10_old av10_old2 av10_turn_over av10_voter av10_income_p90_p50 av10_labour_force_m_work av10_labour_force_m_work2 countryd* if behold10==1
+
+
 
 *regress income
-regress linc gdp_capita_lag open lag_cap pri_sec_share teritary_share young young_adult old corp health_exp pen_exp welf_exp unemp_exp social_exp nonsoc_exp
 
+xtreg av3_linc av3_gdp_capita_lag av3_open av3_lap_cap av3_lag_pri av3_lag_sec av3_lag_teri av3_young av3_young2 av3_young_adult av3_young_adult2 av3_old av3_old2 av3_corp av3_welf av3_edu av3_health_exp av3_pen_exp av3_unemp_exp av3_nonsoc_exp
+regress av3_linc av3_gdp_capita_lag av3_open av3_lap_cap av3_lag_pri av3_lag_sec av3_lag_teri av3_young av3_young2 av3_young_adult av3_young_adult2 av3_old av3_old2 av3_corp av3_welf av3_edu av3_health_exp av3_pen_exp av3_unemp_exp av3_nonsoc_exp countryd*
 
-*ALM OLS
-regress health_exp eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2
-regress social_exp eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2
-regress pen_exp eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2
-regress all_exp eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2
-regress welf_exp eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2
-regress nonsoc_exp eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2
+regress linc gdp_capita_lag open lap_cap lag_pri lag_sec lag_teri young young_adult old corp social_exp nonsoc_exp
 
 
 
 
-*2SLS
-regress social_exp linc linc2 eastern young_adult young_adult2 old old2 school_age school2 labour_force labour_force2 income_p90_p10 income_p90_p50 voter
-predict social_exphat
-regress linc social_exphat eastern young_adult young_adult2 old old2 school_age school2 labour_force income_p90_p10 income_p90_p50 voter
 
-
-
-sem (linc <- gdp_capita_lag open lap_cap pri_sec_share teritary_share young young_adult old corp health_exp pen_exp welf_exp unemp_exp nonsoc_exp) ///
+sem (linc <- gdp_capita_lag open lag_pri lag_sec lag_teri young young_adult old corp health_exp pen_exp welf_exp unemp_exp nonsoc_exp) ///
  (health_exp <- eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2) ///
  (unemp_exp <- eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2)  ///
  (pen_exp <- eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2) ///
  (nonsoc_exp <- eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2) ///
- (all_exp <- eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2)
+ (all_exp <- eastern turn_over linc linc2 young_adult young_adult2 old old2 school_age school2 income_p90_p10 income_p90_p50 voter labour_force labour_force2),method (ml) nocapslatent
