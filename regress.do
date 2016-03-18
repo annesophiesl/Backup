@@ -187,6 +187,28 @@ save "C:\Users\AnneSophie\Documents\Polit\BA\data\data_done.dta"*/
 
 use "C:\Users\AnneSophie\Documents\Polit\BA\data\leader_done.dta"
 
+*removing outliers
+
+
+sum linc, detail
+gen touse1 = inrange(linc, `r(p1)', `r(p99)')
+sum linc if touse1
+
+
+sum young_adult, detail
+gen touse4 = inrange(young_adult, `r(p1)', `r(p99)')
+sum young_adult if touse4
+
+
+sum old, detail
+gen touse2 = inrange(old, `r(p1)', `r(p99)')
+sum old if touse2
+
+
+sum labour_force_m_work, detail
+gen touse3 = inrange(labour_force_m_work, `r(p1)', `r(p99)')
+sum labour_force_m_work if touse3
+
 forvalues y = 3/10{
 gen interval`y'=0
 replace interval`y' = 1 if year>1980+`y'
@@ -258,9 +280,23 @@ gen av10_labour_force_m_work2=av10_labour_force_m_work*av10_labour_force_m_work
 tabulate country, generate (countryd)
 encode country, generate(country_num)
 
+
 *panel data
 xtset country_num
-xtreg av3_soc_exp av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work av3_labour_force_m_work2 if behold3==1
+xtreg av3_pen_exp av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work av3_labour_force_m_work2 if behold3==1
+predict uhat, e
+predict yhat, xb
+gen uhat2=uhat*uhat
+label variable uhat2 "Squared residuals"
+
+graph twoway scatter uhat yhat, name(fig1, replace) 
+graph twoway scatter uhat av3_linc, , name(fig2, replace) 
+graph twoway scatter uhat2 yhat, name(fig3, replace) 
+graph twoway scatter uhat2 av3_linc, , name(fig4, replace) 
+
+graph twoway scatter uhat av3_labour_force_m_work, , name(fig5, replace) 
+graph twoway scatter uhat2 av3_labour_force_m_work, , name(fig6, replace) 
+
 xtreg av5_soc_exp av5_linc av5_linc2 av5_young_adult av5_young_adult2 av5_school_age av5_school_age2 av5_old av5_old2 av5_turn_over av5_voter av5_income_p90_p50 av5_labour_force_m_work av5_labour_force_m_work2 if behold5==1
 xtreg av10_soc_exp av10_linc av10_linc2 av10_young_adult av10_young_adult2 av10_school_age av10_school_age2 av10_old av10_old2 av10_turn_over av10_voter av10_income_p90_p50 av10_labour_force_m_work av10_labour_force_m_work2 if behold10==1
 
