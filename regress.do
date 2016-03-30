@@ -280,7 +280,7 @@ gen av10_labour_force_m_work2=av10_labour_force_m_work*av10_labour_force_m_work
 tabulate country, generate (countryd)
 encode country, generate(country_num)
 
-/*
+
 *panel data
 xtset country_num
 xtreg av3_pen_exp av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work av3_labour_force_m_work2 if behold3==1, robust
