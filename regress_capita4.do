@@ -8,7 +8,7 @@ drop lag_pri lag_sec lag_teri lap_cap
 merge 1:1 country year using "C:\Users\AnneSophie\Documents\Polit\BA\data\social_exp_dollar.dta"
 
 drop if total==0
-
+drop if year==2012
 drop _merge
 
 merge 1:1 year iso using "C:\Users\AnneSophie\Documents\Polit\BA\data\pen_gdp.dta"
@@ -36,7 +36,7 @@ gen linc = ln(gdp_cap)
 sort country year
 gen cap_cap=q_gfcf/pop
 by country: gen gdp_capita_lag = linc[_n - 10]
-by country: gen lap_cap = cap_cap[_n-10]
+by country: gen lap_cap = cap_cap[_n-1]
 by country: gen lag_pri = primary_wb[_n-10]
 by country: gen lag_sec = secondary_wb[_n-10]
 by country: gen lag_teri = teritary_wb[_n-10]
@@ -108,8 +108,8 @@ sum all_capita if touse6
 
 
 
-save "C:\Users\AnneSophie\Documents\Polit\BA\data\data_percapita.dta", replace
-use "C:\Users\AnneSophie\Documents\Polit\BA\data\data_percapita.dta"
+*save "C:\Users\AnneSophie\Documents\Polit\BA\data\data_percapita.dta", replace
+*use "C:\Users\AnneSophie\Documents\Polit\BA\data\data_percapita.dta"
 
 
 
@@ -127,7 +127,6 @@ replace interval`y' = 9 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'
 replace interval`y' = 10 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'
 replace interval`y' = 11 if year>1980+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'+`y'
 }
-drop interval4
 drop interval6
 drop interval7
 drop interval8
@@ -135,49 +134,56 @@ drop interval9
 
 
 foreach x in pen_old gdp_capita_lag linc tax_indi tax_corp tax_prop open lap_cap lag_pri lag_sec lag_teri young young_adult school_age old corp welf_cap health_cap pen_cap unemp_cap edu_cap all_cap turn_over voter income_p90_p50 labour_force_m_work labour_force_f_work{
-bysort interval3 country: egen av3_`x'=mean(`x')
+bysort interval4 country: egen av4_`x'=mean(`x')
 bysort country: egen mean_`x'=mean(`x')
-replace av3_`x'=mean_`x' if av3_`x'==.
+replace av4_`x'=mean_`x' if av4_`x'==.
 }
-bysort interval3 country: gen behold3=1 if _n==1
+bysort interval4 country: gen behold4=1 if _n==1
 
-gen av3_soc_cap = av3_health + av3_welf + av3_pen_old + av3_unemp
-gen av3_nonsoc_cap = av3_all_cap - av3_soc_cap
+gen av4_soc_cap = av4_health + av4_welf + av4_pen_old + av4_unemp
+gen av4_nonsoc_cap = av4_all_cap - av4_soc_cap
 
-gen av3_linc2=av3_linc*av3_linc
-gen av3_old2=av3_old*av3_old
-gen av3_school_age2=av3_school_age*av3_school_age
-gen av3_young_adult2=av3_young_adult*av3_young_adult
-gen av3_young2=av3_young*av3_young
-gen av3_labour_force_m_work2=av3_labour_force_m_work*av3_labour_force_m_work
+gen av4_linc2=av4_linc*av4_linc
+gen av4_old2=av4_old*av4_old
+gen av4_school_age2=av4_school_age*av4_school_age
+gen av4_young_adult2=av4_young_adult*av4_young_adult
+gen av4_young2=av4_young*av4_young
+gen av4_labour_force_m_work2=av4_labour_force_m_work*av4_labour_force_m_work
 
 
 tabulate country, generate (countryd)
 encode country, generate(country_num)
 
-gen av3_soc_cap2=av3_soc_cap*av3_soc_cap
-gen av3_pen_cap2=av3_pen_cap*av3_pen_cap
-gen av3_edu_cap2=av3_edu_cap*av3_edu_cap
-gen av3_health_cap2=av3_health_cap*av3_health_cap
-gen av3_welf_cap2=av3_welf_cap*av3_welf_cap
-gen av3_nonsoc_cap2=av3_nonsoc_cap*av3_nonsoc_cap
-gen av3_unemp_cap2=av3_unemp_cap*av3_unemp_cap
+gen av4_soc_cap2=av4_soc_cap*av4_soc_cap
+gen av4_pen_cap2=av4_pen_cap*av4_pen_cap
+gen av4_edu_cap2=av4_edu_cap*av4_edu_cap
+gen av4_health_cap2=av4_health_cap*av4_health_cap
+gen av4_welf_cap2=av4_welf_cap*av4_welf_cap
+gen av4_nonsoc_cap2=av4_nonsoc_cap*av4_nonsoc_cap
+gen av4_unemp_cap2=av4_unemp_cap*av4_unemp_cap
 
 
 
 xtset country_num
 
-foreach x in av3_all_cap av3_nonsoc_cap av3_soc_cap av3_pen_cap av3_welf_cap av3_unemp_cap av3_edu_cap av3_health_cap {
-xtreg `x' av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work av3_labour_force_m_work2 if behold3==1, robust re
-outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_spending_cap.xls", append pvalue ctitle(`x') label sideway
+foreach x in av4_all_cap av4_nonsoc_cap av4_soc_cap av4_pen_cap av4_welf_cap av4_unemp_cap av4_edu_cap av4_health_cap {
+xtreg `x' av4_linc av4_linc2 av4_young_adult av4_young_adult2 av4_school_age av4_school_age2 av4_old av4_old2 av4_turn_over av4_voter av4_income_p90_p50 av4_labour_force_m_work av4_labour_force_m_work2 if behold4==1, robust re
+outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_spending_cap4.xls", append pvalue ctitle(`x') label sideway
 }
 
-xtreg av3_linc av3_gdp_capita_lag av3_lap_cap av3_open av3_lag_pri av3_lag_sec av3_lag_teri av3_young av3_young_adult av3_old av3_nonsoc_cap av3_edu_cap2 av3_edu_cap av3_nonsoc_cap2 av3_soc_cap av3_soc_cap2 if behold3==1, robust re
-outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc2.xls", replace pvalue ctitle(EQ. 1) label sideway
+xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_lag_pri av4_lag_sec av4_lag_teri av4_young av4_young_adult av4_old av4_nonsoc_cap av4_edu_cap2 av4_edu_cap av4_nonsoc_cap2 av4_soc_cap av4_soc_cap2 if behold4==1, robust re
+outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", replace pvalue ctitle(EQ. 1) label sideway
 
 
-xtreg av3_linc av3_gdp_capita_lag av3_lap_cap av3_open av3_lag_pri av3_lag_sec av3_lag_teri av3_young av3_young_adult av3_old av3_health_cap av3_health_cap2 av3_pen_cap av3_pen_cap2 av3_welf_cap av3_welf_cap2 av3_unemp_cap av3_unemp_cap2 av3_nonsoc_cap av3_nonsoc_cap2 av3_edu_cap av3_edu_cap2 if behold3==1, robust re
-outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc2.xls", append pvalue ctitle(EQ. 2) label sideway
+xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_lag_pri av4_lag_sec av4_lag_teri av4_young av4_young_adult av4_old av4_health_cap av4_health_cap2 av4_pen_cap av4_pen_cap2 av4_welf_cap av4_welf_cap2 av4_unemp_cap av4_unemp_cap2 av4_nonsoc_cap av4_nonsoc_cap2 av4_edu_cap av4_edu_cap2 if behold4==1, robust re
+outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", append pvalue ctitle(EQ. 2) label sideway
+
+xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_young av4_young_adult av4_old av4_nonsoc_cap av4_edu_cap2 av4_edu_cap av4_nonsoc_cap2 av4_soc_cap av4_soc_cap2 if behold4==1, robust re
+outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", append pvalue ctitle(EQ. 3) label sideway
+
+
+xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_young av4_young_adult av4_old av4_health_cap av4_health_cap2 av4_pen_cap av4_pen_cap2 av4_welf_cap av4_welf_cap2 av4_unemp_cap av4_unemp_cap2 av4_nonsoc_cap av4_nonsoc_cap2 av4_edu_cap av4_edu_cap2 if behold4==1, robust re
+outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", append pvalue ctitle(EQ. 4) label sideway
 
 
 /*reg av3_soc_cap av3_linc av3_young_adult av3_school_age  av3_old av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work if behold3==1, robust
@@ -208,9 +214,9 @@ sem
 (av3_health_cap <- av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work av3_labour_force_m_work2)
 (av3_linc <- av3_lap_cap av3_open av3_lag_pri av3_lag_sec av3_lag_teri av3_young av3_young_adult av3_old av3_corp av3_health_cap av3_pen_cap av3_welf_cap av3_unemp_cap av3_nonsoc_cap av3_edu_cap), nocapslatent;
 */
-keep if behold3==1
+keep if behold4==1
 #delimit;
 sem
-(av3_linc <- av3_lap_cap av3_lag_pri av3_lag_sec av3_lag_teri av3_gdp_capita_lag av3_open av3_lag_pri av3_lag_sec av3_lag_teri av3_young av3_young_adult av3_old av3_corp av3_soc_cap av3_soc_cap2 av3_nonsoc_cap av3_nonsoc_cap2 av3_edu_cap av3_edu_cap2)
-(av3_soc_cap <- av3_linc av3_linc2 av3_young_adult av3_young_adult2 av3_school_age av3_school_age2 av3_old av3_old2 av3_turn_over av3_voter av3_income_p90_p50), nocapslatent;
+(av4_linc <- av4_lap_cap av4_lag_pri av4_lag_sec av4_lag_teri av4_gdp_capita_lag av4_open av4_lag_pri av4_lag_sec av4_lag_teri av4_young av4_young_adult av4_old av4_corp av4_soc_cap av4_soc_cap2 av4_nonsoc_cap av4_nonsoc_cap2 av4_edu_cap av4_edu_cap2)
+(av4_soc_cap <- av4_linc av4_linc2 av4_young_adult av4_young_adult2 av4_school_age av4_school_age2 av4_old av4_old2 av4_turn_over av4_voter av4_income_p90_p50), nocapslatent;
 
