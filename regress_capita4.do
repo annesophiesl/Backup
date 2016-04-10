@@ -20,16 +20,27 @@ drop if _merge!=3
 drop _merge
 
 gen pop = YOUNG+ workage + OLD
+replace workage=workage*1000
 replace pop= pop*1000
 replace YOUNG=YOUNG*1000
 replace SCHOOL_=SCHOOL_*1000
 replace OLD=OLD*1000
 replace YOUNG_ = YOUNG_*1000
+gen workage_old = workage-YOUNG_
 
+replace young_adult=YOUNG_ADULT/workage_old
+
+/*
+replace old=OLD/workage_old
+replace young=YOUNG/workage_old
+replace school_age=SCHOOL_AGE/workage_old
+replace young_adult=YOUNG_ADULT/workage_old
+
+*/
 
 drop gdp_total gdp_capita gdp_capita_lag
 rename rgdpe gdp_total
-gen gdp_cap = gdp_total/pop
+gen gdp_cap = gdp_total/workage
 gen linc = ln(gdp_cap)
 
 *gen lagged varialbes;
@@ -45,6 +56,10 @@ replace gdp_current=gdp_current/1000
 replace tax_indi = tax_indi/gdp_current
 replace tax_corp = tax_corp/gdp_current
 replace tax_prop = tax_prop/gdp_current
+
+gen men=workage/2
+replace labour_force_m_work=labour_force_m_work*men
+replace labour_force_m_work=labour_force_m_work/workage
 
 * generate dependent
 
@@ -162,29 +177,37 @@ gen av4_welf_cap2=av4_welf_cap*av4_welf_cap
 gen av4_nonsoc_cap2=av4_nonsoc_cap*av4_nonsoc_cap
 gen av4_unemp_cap2=av4_unemp_cap*av4_unemp_cap
 
-
-
+keep if behold4==1
+tempfile total
+save `total'
 xtset country_num
+
+
 
 foreach x in av4_all_cap av4_nonsoc_cap av4_soc_cap av4_pen_cap av4_welf_cap av4_unemp_cap av4_edu_cap av4_health_cap {
 xtreg `x' av4_linc av4_linc2 av4_young_adult av4_young_adult2 av4_school_age av4_school_age2 av4_old av4_old2 av4_turn_over av4_voter av4_income_p90_p50 av4_labour_force_m_work av4_labour_force_m_work2 if behold4==1, robust re
 outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_spending_cap4.xls", append pvalue ctitle(`x') label sideway
 }
 
-xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_lag_pri av4_lag_sec av4_lag_teri av4_young av4_young_adult av4_old av4_nonsoc_cap av4_edu_cap2 av4_edu_cap av4_nonsoc_cap2 av4_soc_cap av4_soc_cap2 if behold4==1, robust re
+xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_young av4_young_adult av4_old av4_nonsoc_cap av4_edu_cap2 av4_edu_cap av4_nonsoc_cap2 av4_soc_cap av4_soc_cap2 if behold4==1, robust re
 outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", replace pvalue ctitle(EQ. 1) label sideway
 
 
-xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_lag_pri av4_lag_sec av4_lag_teri av4_young av4_young_adult av4_old av4_health_cap av4_health_cap2 av4_pen_cap av4_pen_cap2 av4_welf_cap av4_welf_cap2 av4_unemp_cap av4_unemp_cap2 av4_nonsoc_cap av4_nonsoc_cap2 av4_edu_cap av4_edu_cap2 if behold4==1, robust re
+xtreg av4_linc av4_open av4_young av4_young_adult av4_old av4_health_cap av4_health_cap2 av4_pen_cap av4_pen_cap2 av4_welf_cap av4_welf_cap2 av4_unemp_cap av4_unemp_cap2 av4_nonsoc_cap av4_nonsoc_cap2 av4_edu_cap av4_edu_cap2 if behold4==1, robust re
 outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", append pvalue ctitle(EQ. 2) label sideway
 
-xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_young av4_young_adult av4_old av4_nonsoc_cap av4_edu_cap2 av4_edu_cap av4_nonsoc_cap2 av4_soc_cap av4_soc_cap2 if behold4==1, robust re
+xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_corp av4_open av4_young av4_young_adult av4_old av4_nonsoc_cap av4_edu_cap2 av4_edu_cap av4_nonsoc_cap2 av4_soc_cap av4_soc_cap2 if behold4==1, robust re
 outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", append pvalue ctitle(EQ. 3) label sideway
 
 
-xtreg av4_linc av4_gdp_capita_lag av4_lap_cap av4_open av4_young av4_young_adult av4_old av4_health_cap av4_health_cap2 av4_pen_cap av4_pen_cap2 av4_welf_cap av4_welf_cap2 av4_unemp_cap av4_unemp_cap2 av4_nonsoc_cap av4_nonsoc_cap2 av4_edu_cap av4_edu_cap2 if behold4==1, robust re
+xtreg av4_linc av4_corp av4_open av4_young av4_young_adult av4_old av4_health_cap av4_health_cap2 av4_pen_cap av4_pen_cap2 av4_welf_cap av4_welf_cap2 av4_unemp_cap av4_unemp_cap2 av4_nonsoc_cap av4_nonsoc_cap2 av4_edu_cap av4_edu_cap2 if behold4==1, robust re
 outreg2 using "C:\Users\AnneSophie\Documents\Polit\BA\output\reg_linc24.xls", append pvalue ctitle(EQ. 4) label sideway
 
+foreach x in av4_school_age av4_young_adult av4_old {
+egen min_`x'=min(`x')
+egen max_`x'=max(`x')
+egen mean_`x'=mean(`x')
+}
 
 /*reg av3_soc_cap av3_linc av3_young_adult av3_school_age  av3_old av3_turn_over av3_voter av3_income_p90_p50 av3_labour_force_m_work if behold3==1, robust
 
